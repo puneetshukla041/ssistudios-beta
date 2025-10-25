@@ -44,7 +44,7 @@ useEffect(() => {
 const handleUseTemplate = () => {
   setIsRedirecting(true);
   setTimeout(() => {
-    router.push("/certificates/training");
+    router.push("/certificate");
   }, 1500); // redirect after 1.5s
 };
 
