@@ -50,7 +50,7 @@ export default function DashboardPage() {
     },
     {
       id: "generate-card",
-      label: "Generate Card",
+      label: "Generate Certificates",
       icon: <FileText size={20} />,
       color: "bg-green-500/20 border-green-400/40 text-green-700",
       hoverColor: "hover:bg-green-500/30 hover:border-green-400/60",
@@ -58,7 +58,7 @@ export default function DashboardPage() {
     },
     {
       id: "manage-templates",
-      label: "Browse Templates",
+      label: "Generate ID Cards",
       icon: <LayoutGrid size={20} />,
       color: "bg-purple-500/20 border-purple-400/40 text-purple-700",
       hoverColor: "hover:bg-purple-500/30 hover:border-purple-400/60",
@@ -66,7 +66,7 @@ export default function DashboardPage() {
     },
     {
       id: "upload-asset",
-      label: "Upload Asset",
+      label: "Generate Visiting Cards",
       icon: <Upload size={20} />,
       color: "bg-orange-500/20 border-orange-400/40 text-orange-700",
       hoverColor: "hover:bg-orange-500/30 hover:border-orange-400/60",
@@ -81,12 +81,12 @@ export default function DashboardPage() {
       action: () => navigateTo("/design-tools"),
     },
     {
-      id: "settings",
-      label: "Settings",
+      id: "Themes",
+      label: "Themes",
       icon: <Settings size={20} />,
       color: "bg-gray-500/20 border-gray-400/40 text-gray-700",
       hoverColor: "hover:bg-gray-500/30 hover:border-gray-400/60",
-      action: () => navigateTo("/settings"),
+      action: () => navigateTo("/theme"),
     },
   ];
 
