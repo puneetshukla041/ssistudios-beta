@@ -84,6 +84,7 @@ export default function Editor() {
     const generatePdf = async () => {
       setIsLoading(true);
       try {
+        // NOTE: These fetch calls assume the files are available in a public folder path on the server
         const existingPdfBytes = await fetch("/certificates/certificate1.pdf").then((res) =>
           res.arrayBuffer()
         );
@@ -293,17 +294,15 @@ export default function Editor() {
   };
 
   return (
-    // Outer container: Full screen, using py-8 to reduce vertical height consumption
+    // Outer container: Full screen, using py-8 for vertical padding
     <div className="min-h-screen bg-gray-50 flex justify-center p-4 sm:p-6 lg:py-8 lg:px-12">
       {/* Main Content Area: Maximum width for a wider look */}
       <div className="flex flex-col w-full max-w-full xl:max-w-screen-2xl">
 
         {/* Editor Layout: Responsive Flex/Grid */}
-        {/* Removed height restriction. min-h-full is used to push the footer/end content if needed */}
         <div className="flex flex-col lg:flex-row w-full gap-6 lg:gap-8">
           
-          {/* Left Column: Input Panel - Takes 1/3 on large screens for a wider preview area */}
-          {/* w-full lg:w-1/3 ensures it takes full width on small screens and 1/3 on large screens */}
+          {/* Left Column: Input Panel - Always visible, takes 1/3 on large screens */}
           <div className="w-full lg:w-1/3 bg-white rounded-xl shadow-xl p-6 lg:p-8 flex flex-col gap-6 border border-gray-100 shrink-0">
             <h2 className="text-2xl font-bold text-gray-800 border-b pb-4 mb-2">
               Certificate Details
@@ -353,7 +352,6 @@ export default function Editor() {
                 label="Operation/Achievement Text"
                 type="text"
                 value={operationText}
-                // Using a slightly wider text area simulation for this longer field
                 onChange={(e) => setOperationText(e.target.value)}
                 placeholder="e.g., successfully completed the robotic system training"
               />
@@ -394,9 +392,11 @@ export default function Editor() {
             </div>
           </div>
 
-          {/* Right Column: Preview Area - Takes 2/3 on large screens */}
-          {/* *** LOGIC CORRECTION: Changed lg:w-2/2 to lg:w-2/3 for correct 1/3 + 2/3 split. *** */}
-          <div className="w-full lg:w-2/3 bg-white rounded-xl shadow-xl flex items-center justify-center p-4 sm:p-6 lg:p-8 border border-gray-100 min-h-[60vh]">
+          {/* Right Column: Preview Area
+            Hidden on mobile (hidden) and displayed as a flex container on large screens (lg:flex).
+            Takes 2/3 of the width on large screens (lg:w-2/3). 
+          */}
+          <div className="hidden lg:flex w-full lg:w-2/3 bg-white rounded-xl shadow-xl items-center justify-center p-4 sm:p-6 lg:p-8 border border-gray-100 min-h-[60vh]">
             <div className="w-full h-full border border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-200/50">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center text-gray-500 p-8">
@@ -408,7 +408,6 @@ export default function Editor() {
               ) : previewUrl ? (
                 <iframe
                   src={previewUrl}
-                  // Added max-w-full and max-h-full for better sizing within the container on smaller views
                   className="w-full h-full min-h-[500px] max-w-full max-h-full border-none rounded-lg shadow-inner" 
                   title="Certificate Preview"
                 />
