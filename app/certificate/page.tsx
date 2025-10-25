@@ -66,7 +66,7 @@ export default function Editor() {
   const [doi, setDoi] = useState(formatDate(new Date()));
   const [certificateNo, setCertificateNo] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const [exportStatus, setExportStatus] = useState<
     "idle" | "uploading" | "downloading" | "complete" | "error"
   >("idle");
@@ -303,6 +303,7 @@ export default function Editor() {
         <div className="flex flex-col lg:flex-row w-full gap-6 lg:gap-8">
           
           {/* Left Column: Input Panel - Takes 1/3 on large screens for a wider preview area */}
+          {/* w-full lg:w-1/3 ensures it takes full width on small screens and 1/3 on large screens */}
           <div className="w-full lg:w-1/3 bg-white rounded-xl shadow-xl p-6 lg:p-8 flex flex-col gap-6 border border-gray-100 shrink-0">
             <h2 className="text-2xl font-bold text-gray-800 border-b pb-4 mb-2">
               Certificate Details
@@ -311,7 +312,7 @@ export default function Editor() {
                 Instantly customize and generate a professional training certificate using the input fields below. The preview will update in real-time.
               </p>
             
-            {/* Input fields container: Now wider, using a responsive grid for max horizontal spread */}
+            {/* Input fields container: Uses responsive grid for max horizontal spread */}
             <div className="flex flex-col gap-5 flex-grow overflow-y-auto pr-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <InputComponent
@@ -394,7 +395,8 @@ export default function Editor() {
           </div>
 
           {/* Right Column: Preview Area - Takes 2/3 on large screens */}
-          <div className="w-full lg:w-2/2 bg-white rounded-xl shadow-xl flex items-center justify-center p-4 sm:p-6 lg:p-8 border border-gray-100 min-h-[60vh]">
+          {/* *** LOGIC CORRECTION: Changed lg:w-2/2 to lg:w-2/3 for correct 1/3 + 2/3 split. *** */}
+          <div className="w-full lg:w-2/3 bg-white rounded-xl shadow-xl flex items-center justify-center p-4 sm:p-6 lg:p-8 border border-gray-100 min-h-[60vh]">
             <div className="w-full h-full border border-gray-300 rounded-lg overflow-hidden flex items-center justify-center bg-gray-200/50">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center text-gray-500 p-8">
@@ -406,7 +408,8 @@ export default function Editor() {
               ) : previewUrl ? (
                 <iframe
                   src={previewUrl}
-                  className="w-full h-full min-h-[500px] border-none rounded-lg shadow-inner"
+                  // Added max-w-full and max-h-full for better sizing within the container on smaller views
+                  className="w-full h-full min-h-[500px] max-w-full max-h-full border-none rounded-lg shadow-inner" 
                   title="Certificate Preview"
                 />
               ) : (
