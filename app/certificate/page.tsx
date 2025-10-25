@@ -1,3 +1,5 @@
+// page.tsx (No change from last fix)
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -201,43 +203,75 @@ export default function Editor() {
     };
   }, [firstName, lastName, hospitalName, programName, operationText, doi, certificateNo]);
 
-  // Export Logic
-  const handleExport = async () => {
-    if (!previewUrl) return;
+// Export Logic
+const handleExport = async () => {
+  // 1. Basic checks
+  if (!previewUrl || !certificateNo) {
+    alert("Please ensure a certificate number is provided before exporting.");
+    return;
+  }
 
-    setExportStatus("uploading");
-    setIsLoading(true);
+  setExportStatus("uploading");
+  setIsLoading(true);
 
-    try {
-      const res = await fetch(previewUrl);
-      const blob = await res.blob();
+  try {
+    // 2. Fetch the PDF Blob from the preview URL
+    const res = await fetch(previewUrl);
+    const pdfBlob = await res.blob();
+    
+    // 3. Prepare the form data for the API
+    const formData = new FormData();
+    formData.append("file", pdfBlob, `${certificateNo}-${firstName || "user"}.pdf`);
+    formData.append("certificateNo", certificateNo);
+    formData.append("recipientName", `${firstName} ${lastName}`.trim());
+    formData.append("programName", programName);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate upload
-
-      const fileName = `${certificateNo || "certificate"}-${firstName || "user"}.pdf`;
-
-      setExportStatus("downloading");
-
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate download
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", fileName);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      setExportStatus("complete");
-      setTimeout(() => setExportStatus("idle"), 2000);
-    } catch (err) {
-      console.error("Upload/Download error:", err);
-      setExportStatus("error");
-      setTimeout(() => setExportStatus("idle"), 3000); // Clear error after delay
-    } finally {
-      setIsLoading(false);
+    // 4. Call the backend API
+    console.log("Starting upload to backend and DB...");
+    const uploadResponse = await fetch("/api/certificates", {
+      method: "POST",
+      body: formData,
+    });
+    
+    if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        // Log the crucial detail returned by the server
+        console.error("Server Response Error Detail:", errorData.detail); 
+        // Throw a user-facing error message
+        throw new Error(errorData.message || `Server responded with status ${uploadResponse.status}`);
     }
-  };
+    
+    const result = await uploadResponse.json();
+    console.log("Upload successful:", result);
+
+    // 5. Initiate the file download (client-side)
+    setExportStatus("downloading");
+
+    const fileName = `${certificateNo}-${firstName || "user"}.pdf`;
+    
+    // Create a temporary URL for the download
+    const url = window.URL.createObjectURL(pdfBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    setExportStatus("complete");
+    setTimeout(() => setExportStatus("idle"), 2000);
+  } catch (err) {
+    // Log the client-side error object
+    console.error("Upload/Download error:", err);
+    setExportStatus("error");
+    setTimeout(() => setExportStatus("idle"), 3000); 
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// ... (Rest of your component code - getButtonContent, getButtonClass, and return JSX)
 
   // Helper functions for button state
   const getButtonContent = () => {
