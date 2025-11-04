@@ -17,7 +17,7 @@ export const useTheme = () => {
 // --- Provider ---
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>(
-    (localStorage.getItem("theme") as Theme) || "flower" // ✅ default directly flower
+    (localStorage.getItem("theme") as Theme) || "light" // ✅ default directly flower
   );
 
   useEffect(() => {

@@ -7,10 +7,8 @@ interface LoadingScreenProps {
 }
 
 const lines = [
-  "Just a moment while we load everything up...",
-  "AWS Bucket connecting...",
-  "AWS Bucket connected",
-  "Workspace Ready!"
+  "connecting...",
+  "connected",
 ];
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ redirectUrl }) => {
@@ -20,7 +18,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ redirectUrl }) => {
   useEffect(() => {
     // Smooth progress bar over 4 seconds
     const progressStart = performance.now();
-    const progressDuration = 4000; // 4 seconds
+    const progressDuration = 1000; // 4 seconds
 
     const progressAnimation = (timestamp: number) => {
       const elapsed = timestamp - progressStart;
@@ -44,7 +42,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ redirectUrl }) => {
       index++;
       if (index < lines.length) setDisplayLine(lines[index]);
       else clearInterval(lineInterval);
-    }, 1300); // 1.3s per line
+    }, 400); // 1.3s per line
 
     return () => clearInterval(lineInterval);
   }, [redirectUrl]);
@@ -64,7 +62,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ redirectUrl }) => {
           <motion.div
             className="h-full bg-blue-500"
             style={{ width: `${progress}%` }}
-            transition={{ duration: 4 }}
+            transition={{ duration: 1 }}
           />
         </div>
 

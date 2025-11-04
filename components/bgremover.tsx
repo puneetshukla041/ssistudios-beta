@@ -310,7 +310,7 @@ const res = await fetch("/api/upload", {
           className="text-4xl sm:text-5xl font-extrabold mb-6 
                       -mt-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500"
         >
-          Background Remover — Next Level
+          Background Remover
         </motion.h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

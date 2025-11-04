@@ -68,7 +68,7 @@ export default function ProfilePage() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setSaveSuccess(true);
       // Wait for the success animation to show for 1 second
-      setTimeout(() => setIsSaving(false), 1000);
+      setTimeout(() => setIsSaving(false), 500);
     } catch (err) {
       console.error("Failed to save changes:", err);
       setIsSaving(false);
@@ -105,8 +105,8 @@ export default function ProfilePage() {
         console.error("Failed to fetch user profile:", err);
       } finally {
         const elapsed = Date.now() - startTime;
-        const circleDuration = 2000;
-        const tickDuration = 2000;
+        const circleDuration = 500;
+        const tickDuration = 500;
 
         // Ensure loading screen is visible for at least 2 seconds
         setTimeout(

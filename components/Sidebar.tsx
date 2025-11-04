@@ -61,14 +61,11 @@ const menu: MenuItem[] = [
     path: "/idcard",
     requiredAccess: 'idCard',
   },
-  {
+    {
     name: 'Posters',
     icon: Layout,
+    path: "/poster/editor",
     requiredAccess: 'posterEditor',
-    children: [
-      { name: 'Single Logo Editor', path: '/selector/posters/single' },
-      { name: 'Multiple Logos Editor', path: '/selector/posters/multiple' },
-    ],
   },
   
   {
@@ -80,22 +77,19 @@ const menu: MenuItem[] = [
       { name: 'Light Theme', path: '/selector/visitingcard/light' },
     ],
   },
-  {
+    {
     name: 'Certificates',
     icon: Layers,
+    path: '/selector/certificate',
     requiredAccess: 'certificateEditor',
-    children: [
-      { name: 'Certificate Generator', path: '/selector/certificate' },
-      { name: 'Saved Certificates', path: '/certificates/saved' },
-    ],
   },
+
   {
     name: 'Branding Assets',
     icon: Palette,
     requiredAccess: 'assets',
     children: [
       { name: 'Logo Library', path: '/logo' },
-      { name: 'Fonts & Colors', path: '/theme' },
     ],
   },
   {
