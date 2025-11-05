@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx (Updated)
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -16,12 +17,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/dashboard/Header";
 import Usernameheader from "@/components/dashboard/usernameheader";
 import BugReporterCard from "@/components/dashboard/BugReporterCard";
+// Import the new Templates component
+import Templates from "@/components/dashboard/Templates"; // <--- ADD THIS LINE
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [isBugCardOpen, setIsBugCardOpen] = useState(false);
 
-  // Define the shape of a quick action button
+  // ... (QuickAction interface and navigateTo function remain the same) ...
+
   interface QuickAction {
     id: string;
     label: string;
@@ -31,7 +35,6 @@ export default function DashboardPage() {
     action: () => void;
   }
 
-  // Placeholder navigation function (replace with your actual useNavigation hook or router logic)
   const navigateTo = (path: string) => {
     console.log(`Navigation placeholder: Directing to ${path}`);
     // In a real app, this would likely be:
@@ -157,6 +160,10 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
+      {/* ------------------------------------------------------------- */}
+
+      {/* ----------------- EXPLORE TEMPLATES SECTION ----------------- */}
+      <Templates /> {/* <--- ADD THIS LINE */}
       {/* ------------------------------------------------------------- */}
 
 

@@ -27,7 +27,7 @@ const LandingPage = () => {
           justifyContent: 'center',
           background: 'black',
           overflow: 'hidden',
-          zIndex: 999999, // 👑 highest z-index to cover all content
+          zIndex: 999999,
         }}
       >
         <h1
