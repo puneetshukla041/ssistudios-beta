@@ -1,8 +1,10 @@
+// Editor.tsx (Complete Code)
 "use client"
 import React, { useEffect, useState } from "react";
 import fontkit from "@pdf-lib/fontkit";
 import Header from "@/components/dashboard/Header";
 import { Calendar, Cloud, Download, Check } from "lucide-react";
+
 interface InputProps {
   label: string;
   type: string;
@@ -12,6 +14,7 @@ interface InputProps {
   focusColor: string;
   icon?: React.ReactNode;
 }
+
 const InputComponent: React.FC<InputProps> = ({
   label,
   type,
@@ -42,6 +45,7 @@ const InputComponent: React.FC<InputProps> = ({
     </div>
   </div>
 );
+
 export default function Editor() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -185,66 +189,62 @@ export default function Editor() {
     generatePdf();
   }, [firstName, lastName, hospitalName, programName, operationText, doi, certificateNo]);
 
-  const handleExport = async () => {
+const handleExport = async () => {
     if (!previewUrl) return;
 
     setExportStatus("uploading");
     setIsLoading(true);
 
     try {
-      const res = await fetch(previewUrl);
-      const blob = await res.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const base64 = btoa(
-        new Uint8Array(arrayBuffer)
-          .reduce((data, byte) => data + String.fromCharCode(byte), "")
-      );
-
-      // Simulate a 2-second upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const uploadFolder = "certificates";
-      const fileName = `${certificateNo || "certificate"}.pdf`;
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileBase64: base64,
-          fileName: fileName,
-          folder: uploadFolder,
-          mimeType: "application/pdf",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.url) {
-        setExportStatus("downloading");
+        const res = await fetch(previewUrl);
+        const blob = await res.blob();
+        const arrayBuffer = await blob.arrayBuffer();
         
-        // Simulate a 1-second download delay and trigger download
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        // Convert ArrayBuffer to a Base64 string for safe JSON transmission
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        
+        // 1. Save to MongoDB via App Router API endpoint
+        const saveResponse = await fetch("/api/certificates/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                recipientName: `${firstName} ${lastName}`.trim(),
+                // Use a fallback for certificateNo if empty
+                certificateNo: certificateNo || `CERT-${Date.now()}`, 
+                programName: programName,
+                fileBase64: base64, // Full quality PDF data
+                fileType: "application/pdf",
+            }),
+        });
 
-        setExportStatus("complete");
-        setTimeout(() => setExportStatus("idle"), 2000);
-      } else {
-        throw new Error(data.error || "Upload failed");
-      }
+        const saveResult = await saveResponse.json();
+
+        if (saveResponse.ok && saveResult.success) {
+            setExportStatus("downloading");
+
+            // 2. Trigger immediate download
+            const fileName = `${certificateNo || "certificate"}.pdf`;
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            setExportStatus("complete");
+            setTimeout(() => setExportStatus("idle"), 2000);
+        } else {
+            throw new Error(saveResult.error || "Saving to DB failed");
+        }
     } catch (err) {
-      console.error("Upload error:", err);
-      setExportStatus("error");
+        console.error("Export error:", err);
+        setExportStatus("error");
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
 
 
   return (
@@ -344,7 +344,7 @@ export default function Editor() {
                     return (
                       <div className="flex items-center justify-center gap-2">
                         <Cloud size={16} className="animate-bounce" />
-                        <span>Uploading to AWS...</span>
+                        <span>Saving to MongoDB...</span> {/* Updated Text */}
                       </div>
                     );
                   case "downloading":

@@ -17,7 +17,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/dashboard/Header";
 import Usernameheader from "@/components/dashboard/usernameheader";
 import BugReporterCard from "@/components/dashboard/BugReporterCard";
-// Import the new Templates component
+import Recent from "@/components/dashboard/Recent";
+
 import Templates from "@/components/dashboard/Templates"; // <--- ADD THIS LINE
 
 export default function DashboardPage() {
@@ -166,6 +167,10 @@ export default function DashboardPage() {
       <Templates /> {/* <--- ADD THIS LINE */}
       {/* ------------------------------------------------------------- */}
 
+  <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900">
+    Recent Projects
+  </h2>
+  <Recent /> {/* Render your recent projects component */}
 
       {/* Bug Reporter Card */}
       {user && ( // Only render if a user is logged in
