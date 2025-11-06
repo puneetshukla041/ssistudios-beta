@@ -58,7 +58,7 @@ export default function DashboardPage() {
       icon: <FileText size={20} />,
       color: "bg-green-500/20 border-green-400/40 text-green-700",
       hoverColor: "hover:bg-green-500/30 hover:border-green-400/60",
-      action: () => navigateTo("/cards"),
+      action: () => navigateTo("/certificate"),
     },
     {
       id: "manage-templates",

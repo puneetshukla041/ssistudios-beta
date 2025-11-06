@@ -13,6 +13,7 @@ import {
   Layers,
   Palette,
   Settings,
+  BugIcon,
   ChevronDown,
   ChevronRight,
   FileImage,
@@ -100,6 +101,13 @@ const menu: MenuItem[] = [
       { name: 'Profile & Preferences', path: '/userprofile' },
     ],
   },
+    {
+    name: 'Report an Bug',
+    icon: BugIcon,
+    path: "/reportbug",
+    requiredAccess: 'idCard',
+  },
+
   { name: 'Logout', icon: LogOut, mobileOnly: true },
 ]
 
