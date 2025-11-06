@@ -1,5 +1,3 @@
-// page.tsx (Changes applied)
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -59,9 +57,9 @@ export default function Editor() {
   const [operationText, setOperationText] = useState(
     "to operate the SSI Mantra Surgical Robotic System"
   );
-  // NEW STATE VARIABLE
+  // MODIFIED: NEW STATE VARIABLE
   const [paragraphText, setParagraphText] = useState(
-    "r successfully completing the training requirements and demonstrating proficiency in the surgical robotic system  ccessfully completing the training requirements and demonstrating proficiency in the surgical robotic system ccessfully completing the training requirements and demonstrating proficiency in the surgical robotic system"
+    "" // Changed default value to an empty string
   );
   const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, "0");
@@ -134,6 +132,21 @@ export default function Editor() {
           });
         }
 
+        // --- NEW STATIC LINE DRAWING LOGIC ---
+        // This line is placed above the programName text (which is at y - 76)
+        const staticLineText = "has successfully completed the";
+        firstPage.drawText(staticLineText, {
+          x,
+          y: y - 64, // Adjusted placement
+          size: 7,
+          font: soraFont, // Use Sora-Regular.ttf
+          color: rgb(0.5, 0.5, 0.5), // Gray color
+          maxWidth: 350,
+          lineHeight: 10,
+        });
+        // --- END NEW STATIC LINE DRAWING LOGIC ---
+
+
         if (programName) {
           firstPage.drawText(programName, {
             x,
@@ -143,7 +156,19 @@ export default function Editor() {
             color: rgb(0, 0, 0),
           });
         }
-
+        // --- START NEW LINE REQUESTED BY USER (Below Program Name) ---
+        const providerLineText = "provided by Sudhir Srivastava Innovations Pvt. Ltd";
+        firstPage.drawText(providerLineText, {
+          x,
+          y: y - 88, // Positioned 12 units below programName (y - 76)
+          size: 7,
+          font: soraFont, // Use Sora-Regular.ttf
+          color: rgb(0.5, 0.5, 0.5), // Gray color
+          maxWidth: 350,
+          lineHeight: 10,
+        });
+        // --- END NEW LINE REQUESTED BY USER ---
+        
         if (operationText) {
           firstPage.drawText(operationText, {
             x,
@@ -175,7 +200,7 @@ export default function Editor() {
           const pageWidth = firstPage.getWidth();
           firstPage.drawText(doi, {
             x: Math.max(margin, (pageWidth - textWidth) / 2) - 65,
-            y: margin + 37,
+            y: margin + 45,
             size: fontSize,
             font: soraSemiBoldFont,
             color: rgb(0, 0, 0),
@@ -190,7 +215,7 @@ export default function Editor() {
           const pageWidth = firstPage.getWidth();
           firstPage.drawText(certificateNo, {
             x: pageWidth - textWidth - margin - 105,
-            y: margin + 38,
+            y: margin + 45,
             size: fontSize,
             font: soraSemiBoldFont,
             color: rgb(0, 0, 0),
@@ -219,13 +244,14 @@ export default function Editor() {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [firstName, lastName, hospitalName, programName, operationText, paragraphText, doi, certificateNo]); // Added paragraphText to dependency array
+  }, [firstName, lastName, hospitalName, programName, operationText, paragraphText, doi, certificateNo]); // paragraphText is in dependency array
 
 // Export Logic
 const handleExport = async () => {
   // 1. Basic checks
   if (!previewUrl || !certificateNo) {
-    alert("Please ensure a certificate number is provided before exporting.");
+    // IMPORTANT: Replaced alert() with console.error/log and return to follow safety guidelines
+    console.error("Export Error: Please ensure a certificate number is provided before exporting.");
     return;
   }
 
@@ -288,8 +314,6 @@ const handleExport = async () => {
     setIsLoading(false);
   }
 };
-
-// ... (Rest of your component code - getButtonContent, getButtonClass, and return JSX)
 
   // Helper functions for button state
   const getButtonContent = () => {
@@ -360,8 +384,8 @@ const handleExport = async () => {
               Certificate Details
             </h2>
             <p className="mt-2 text-base text-gray-600">
-                Instantly customize and generate a professional training certificate using the input fields below. The preview will update in real-time.
-              </p>
+              Instantly customize and generate a professional training certificate using the input fields below. The preview will update in real-time.
+            </p>
             
             {/* Input fields container: Uses responsive grid for max horizontal spread */}
             <div className="flex flex-col gap-5 flex-grow overflow-y-auto pr-1">
@@ -408,13 +432,13 @@ const handleExport = async () => {
                 placeholder="e.g., successfully completed the robotic system training"
               />
               
-              {/* NEW INPUT COMPONENT FOR PARAGRAPH */}
+              {/* INPUT COMPONENT FOR PARAGRAPH */}
               <InputComponent
                 label="Paragraph Text"
                 type="text"
                 value={paragraphText}
                 onChange={(e) => setParagraphText(e.target.value)}
-                placeholder="e.g., for demonstrating proficiency..."
+                placeholder="write your content" // MODIFIED: New placeholder text
               />
               {/* END NEW INPUT COMPONENT */}
 
