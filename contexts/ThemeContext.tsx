@@ -17,12 +17,12 @@ export const useTheme = () => {
 // --- Provider ---
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>(
-    (localStorage.getItem("theme") as Theme) || "light" // ✅ default directly flower
+    (localStorage.getItem("theme") as Theme) || "light"
   );
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as Theme | null;
-    setThemeState(savedTheme || "flower");
+    setThemeState(savedTheme || "light"); // ✅ Default is now light, not flower
   }, []);
 
   useEffect(() => {
