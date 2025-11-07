@@ -143,7 +143,7 @@ export default function LoadingPage() {
           {/* Right: Text + Button */}
           <div className="md:w-1/2 w-full text-center md:text-left">
             <h1 className="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-teal-900">
-              Advanced Certificate of Excellence
+              Certificate of Training
             </h1>
 
             <p className="text-gray-700 mb-4 text-sm leading-relaxed">
