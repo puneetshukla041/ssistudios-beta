@@ -75,7 +75,7 @@ export default function Editor() {
   );
   // MODIFIED: NEW STATE VARIABLE
 const [paragraphText, setParagraphText] = useState(
-  "This certificate is awarded upon successfully completing the training requirements and demonstrating exceptional proficiency in the surgical robotic system. The recipient has shown outstanding commitment to surgical innovation and patient care excellence."
+  "The Proctorship & Mentorship Program acknowledges exceptional surgical expertise and leadership in robotic-assisted surgery. Participants have demonstrated outstanding robotic skill, clinical judgment, and the ability to guide peers through safe and effective use of the SSI Mantra Robotic System. As Certified Proctors & Mentors, they are entrusted to represent SS Innovations by mentoring surgeons and supporting the expansion of robotic surgical excellence across institutions."
 );
 
   const formatDate = (date: Date) => {
