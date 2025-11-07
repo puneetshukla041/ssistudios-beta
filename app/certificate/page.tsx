@@ -208,7 +208,7 @@ const handleDoiChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaEle
         if (programName) {
           firstPage.drawText(programName, {
             x,
-            y: y - 76,
+            y: y - 77,
             size: 6,
             font: soraSemiBoldFont,
             color: rgb(0, 0, 0),
@@ -218,7 +218,7 @@ const handleDoiChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaEle
         const providerLineText = "at Sudhir Srivastava Innovations Pvt. Ltd";
         firstPage.drawText(providerLineText, {
           x,
-          y: y - 88, // Positioned 12 units below programName (y - 76)
+          y: y - 91, // Positioned 12 units below programName (y - 76)
           size: 7,
           font: soraFont, // Use Sora-Regular.ttf
           color: rgb(0.5, 0.5, 0.5), // Gray color
@@ -233,7 +233,7 @@ if (operationText) {
     firstPage,
     operationText,
     x,
-    y - 100,
+    y - 105,
     soraSemiBoldFont,
     6,
     rgb(0, 0, 0),
@@ -249,7 +249,7 @@ if (paragraphText) {
     firstPage,
     paragraphText,
     x,
-    y - 140,
+    y - 160,
     soraFont,
     7,
     rgb(0.5, 0.5, 0.5),
