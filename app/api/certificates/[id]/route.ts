@@ -1,17 +1,17 @@
 // app/api/certificate/[id]/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3 } from "@/lib/s3Client";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> } // 👈 Notice: params is a Promise
 ) {
   try {
+    const { id } = await context.params; // 👈 Must await it now
     const bucketName = process.env.AWS_BUCKET_NAME!;
-    const certificateKey = decodeURIComponent(params.id); 
-    // Example: params.id = "username/CERT-001.pdf"
+    const certificateKey = decodeURIComponent(id);
 
     if (!certificateKey) {
       return NextResponse.json(
@@ -28,17 +28,15 @@ export async function GET(
       Key: fullKey,
     });
 
-    // Try to generate a signed URL
     const signedUrl = await getSignedUrl(s3, command, { expiresIn: 60 });
 
     return NextResponse.json({ url: signedUrl }, { status: 200 });
   } catch (error: any) {
     console.error("Error fetching certificate:", error);
 
-    // Handle missing file gracefully
     if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
       return NextResponse.json(
-        { error: "Certificate not found", key: params.id },
+        { error: "Certificate not found" },
         { status: 404 }
       );
     }
