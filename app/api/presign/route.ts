@@ -1,49 +1,33 @@
-// app/api/presign/route.ts
-import { NextRequest } from "next/server";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { NextRequest, NextResponse } from "next/server";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
-export const runtime = "nodejs";
-
-const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
-});
+import { s3 } from "@/lib/s3Client";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { filename, certificateNo, username, contentType } = body;
+    const { certificateNo, fileName } = await req.json();
 
-    if (!filename || !certificateNo || !username) {
-      return new Response(JSON.stringify({ error: "missing fields" }), { status: 400 });
+    if (!certificateNo || !fileName) {
+      return NextResponse.json({ error: "certificateNo and fileName are required" }, { status: 400 });
     }
 
-    // sanitize username for key
-    const safeUsername = String(username).replace(/[^a-zA-Z0-9-_]/g, "_");
-    const safeFile = filename.replace(/[^a-zA-Z0-9-_.]/g, "_");
-    const key = `certificates/${safeUsername}/${certificateNo}-${safeFile}`;
+    const bucketName = process.env.AWS_BUCKET_NAME!;
+    const s3Key = `certificates/${certificateNo}/${fileName}`;
 
     const command = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET,
-      Key: key,
-      ContentType: contentType || "application/pdf",
-      ServerSideEncryption: "AES256", // ensure SSE-S3
-      // You may optionally add Metadata: { uploadedBy: username, certificateNo }
+      Bucket: bucketName,
+      Key: s3Key,
+      ContentType: "application/pdf",
     });
 
-    // presigned PUT URL valid e.g., 5 minutes (300 seconds)
-    const url = await getSignedUrl(s3, command, { expiresIn: 300 });
+    const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // 5 min expiry
 
-    return new Response(JSON.stringify({ url, key }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    return NextResponse.json({
+      uploadUrl: signedUrl,
+      s3Key,
     });
   } catch (err: any) {
-    console.error("presign error", err);
-    return new Response(JSON.stringify({ error: err.message || String(err) }), { status: 500 });
+    console.error("Error generating upload URL:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

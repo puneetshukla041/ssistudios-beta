@@ -315,75 +315,63 @@ if (certificateNo) {
       }
     };
   }, [firstName, lastName, hospitalName, programName, operationText, paragraphText, doi, certificateNo]); // paragraphText is in dependency array
-
-// Export Logic
 const handleExport = async () => {
-  // 1. Basic checks
-  if (!previewUrl || !certificateNo) {
-    // IMPORTANT: Replaced alert() with console.error/log and return to follow safety guidelines
-    console.error("Export Error: Please ensure a certificate number is provided before exporting.");
-    return;
-  }
+  if (!previewUrl || !certificateNo) return console.error("Certificate number required");
 
   setExportStatus("uploading");
   setIsLoading(true);
 
   try {
-    // 2. Fetch the PDF Blob from the preview URL
+    // 1️⃣ Get the PDF blob
     const res = await fetch(previewUrl);
     const pdfBlob = await res.blob();
-    
-    // 3. Prepare the form data for the API
-    const formData = new FormData();
-    formData.append("file", pdfBlob, `${certificateNo}-${firstName || "user"}.pdf`);
-    formData.append("certificateNo", certificateNo);
-    formData.append("recipientName", `${firstName} ${lastName}`.trim());
-    formData.append("programName", programName);
 
-    // 4. Call the backend API
-    console.log("Starting upload to backend and DB...");
-    const uploadResponse = await fetch("/api/certificates", {
+    // 2️⃣ Request a presigned URL from backend
+    const presignRes = await fetch("/api/certificates/presign", {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ certificateNo, fileName: `${certificateNo}.pdf` }),
     });
-    
-    if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        // Log the crucial detail returned by the server
-        console.error("Server Response Error Detail:", errorData.detail); 
-        // Throw a user-facing error message
-        throw new Error(errorData.message || `Server responded with status ${uploadResponse.status}`);
-    }
-    
-    const result = await uploadResponse.json();
-    console.log("Upload successful:", result);
 
-    // 5. Initiate the file download (client-side)
+    if (!presignRes.ok) throw new Error("Failed to get presigned URL");
+    const { uploadUrl, s3Key } = await presignRes.json();
+
+    // 3️⃣ Upload the PDF directly to S3
+    const uploadRes = await fetch(uploadUrl, { method: "PUT", body: pdfBlob, headers: { "Content-Type": "application/pdf" } });
+    if (!uploadRes.ok) throw new Error("Upload failed");
+
+    console.log("File uploaded successfully to S3:", s3Key);
+
+    // 4️⃣ Save metadata in DB (small JSON payload)
+    await fetch("/api/certificates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ certificateNo, recipientName: `${firstName} ${lastName}`, programName }),
+    });
+
     setExportStatus("downloading");
 
-    const fileName = `${certificateNo}-${firstName || "user"}.pdf`;
-    
-    // Create a temporary URL for the download
-    const url = window.URL.createObjectURL(pdfBlob);
+    // 5️⃣ Trigger client-side download
+    const downloadUrl = window.URL.createObjectURL(pdfBlob);
     const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", fileName);
+    link.href = downloadUrl;
+    link.download = `${certificateNo}.pdf`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
 
     setExportStatus("complete");
     setTimeout(() => setExportStatus("idle"), 2000);
   } catch (err) {
-    // Log the client-side error object
     console.error("Upload/Download error:", err);
     setExportStatus("error");
-    setTimeout(() => setExportStatus("idle"), 3000); 
+    setTimeout(() => setExportStatus("idle"), 3000);
   } finally {
     setIsLoading(false);
   }
 };
+
 
   // Helper functions for button state
   const getButtonContent = () => {
