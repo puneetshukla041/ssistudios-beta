@@ -275,19 +275,22 @@ if (paragraphText) {
           });
         }
 
-        if (certificateNo) {
-          const fontSize = 7;
-          const margin = 40;
-          const textWidth = soraSemiBoldFont.widthOfTextAtSize(certificateNo, fontSize);
-          const pageWidth = firstPage.getWidth();
-          firstPage.drawText(certificateNo, {
-            x: pageWidth - textWidth - margin - 105,
-            y: margin + 45,
-            size: fontSize,
-            font: soraSemiBoldFont,
-            color: rgb(0, 0, 0),
-          });
-        }
+if (certificateNo) {
+  const fontSize = 7;
+  const marginLeft = 165; // fixed left position
+  const marginBottom = 85; // adjust as needed
+
+  const pageWidth = firstPage.getWidth();
+
+  firstPage.drawText(certificateNo, {
+    x: pageWidth - marginLeft, // fixed start position
+    y: marginBottom,
+    size: fontSize,
+    font: soraSemiBoldFont,
+    color: rgb(0, 0, 0),
+  });
+}
+
         
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([new Uint8Array(pdfBytes)], {
