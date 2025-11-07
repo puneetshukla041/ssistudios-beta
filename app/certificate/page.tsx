@@ -1,5 +1,3 @@
-// page.tsx (No change from last fix)
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -13,40 +11,56 @@ import { Calendar, Cloud, Download, Check, AlertTriangle } from "lucide-react";
 
 interface InputProps {
   label: string;
-  type: string;
+  type?: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  placeholder?: string;
   icon?: React.ReactNode;
+  multiline?: boolean;
+  rows?: number;
 }
 
 const InputComponent: React.FC<InputProps> = ({
   label,
-  type,
+  type = "text",
   value,
   onChange,
   placeholder,
   icon,
+  multiline = false,
+  rows = 6,
 }) => (
-  <div className="flex flex-col gap-1">
+  <div className="flex flex-col gap-2"> {/* Equal spacing between label and field */}
     <label className="text-sm font-medium text-gray-700">{label}</label>
     <div className="relative">
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        // Modern, light-theme input styling
-        className="w-full bg-white border border-gray-300 rounded-lg py-2 pl-4 pr-10 text-base text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out"
-      />
-      {icon && (
-        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 pointer-events-none">
+      {multiline ? (
+        <textarea
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          rows={rows}
+          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-base text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out resize-none"
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-base text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out"
+        />
+      )}
+
+      {/* Right-side icon (for input only) */}
+      {icon && !multiline && (
+        <span className="absolute inset-y-0 right-3 flex items-center text-gray-500 pointer-events-none">
           {icon}
         </span>
       )}
     </div>
   </div>
 );
+
 
 // --- Main Editor Component ---
 
@@ -55,10 +69,15 @@ export default function Editor() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [hospitalName, setHospitalName] = useState("");
-  const [programName, setProgramName] = useState("Robotics Training Program");
+  const [programName, setProgramName] = useState("Proctorship & Mentorship Program");
   const [operationText, setOperationText] = useState(
-    "to operate the SSI Mantra Surgical Robotic System"
+    "and is hereby recognized as a Certified Proctor & Mentor authorized to perform advanced robotic surgeries, mentor surgeons, and provide clinical guidance on the SSI Mantra Surgical Robotic System."
   );
+  // MODIFIED: NEW STATE VARIABLE
+const [paragraphText, setParagraphText] = useState(
+  "This certificate is awarded upon successfully completing the training requirements and demonstrating exceptional proficiency in the surgical robotic system. The recipient has shown outstanding commitment to surgical innovation and patient care excellence."
+);
+
   const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -73,12 +92,53 @@ export default function Editor() {
     "idle" | "uploading" | "downloading" | "complete" | "error"
   >("idle");
 
-  const handleDoiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let v = e.target.value.replace(/\D/g, "");
-    if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
-    if (v.length > 5) v = v.slice(0, 5) + "/" + v.slice(5, 9);
-    setDoi(v);
-  };
+
+
+// Utility: split text into lines based on max width
+const drawMultilineText = (
+  page: any,
+  text: string,
+  x: number,
+  y: number,
+  font: any,
+  size: number,
+  color: any,
+  maxWidth: number,
+  lineHeight: number
+) => {
+  const words = text.split(" ");
+  let line = "";
+  let offsetY = 0;
+
+  words.forEach((word, i) => {
+    const testLine = line ? line + " " + word : word;
+    const testWidth = font.widthOfTextAtSize(testLine, size);
+
+    if (testWidth > maxWidth && line) {
+      page.drawText(line, { x, y: y - offsetY, size, font, color });
+      line = word;
+      offsetY += lineHeight;
+    } else {
+      line = testLine;
+    }
+
+    // Draw the last line
+    if (i === words.length - 1) {
+      page.drawText(line, { x, y: y - offsetY, size, font, color });
+    }
+  });
+};
+
+
+
+
+const handleDoiChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const input = e.target as HTMLInputElement;
+  let v = input.value.replace(/\D/g, "");
+  if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
+  if (v.length > 5) v = v.slice(0, 5) + "/" + v.slice(5, 9);
+  setDoi(v);
+};
 
   // PDF Generation Effect
   useEffect(() => {
@@ -130,25 +190,75 @@ export default function Editor() {
           });
         }
 
+        // --- NEW STATIC LINE DRAWING LOGIC ---
+        // This line is placed above the programName text (which is at y - 76)
+        const staticLineText = "Is hereby officially onboarded onto the";
+        firstPage.drawText(staticLineText, {
+          x,
+          y: y - 64, // Adjusted placement
+          size: 7,
+          font: soraFont, // Use Sora-Regular.ttf
+          color: rgb(0.5, 0.5, 0.5), // Gray color
+          maxWidth: 350,
+          lineHeight: 10,
+        });
+        // --- END NEW STATIC LINE DRAWING LOGIC ---
+
+
         if (programName) {
           firstPage.drawText(programName, {
             x,
             y: y - 76,
-            size: 7,
+            size: 6,
             font: soraSemiBoldFont,
             color: rgb(0, 0, 0),
           });
         }
+        // --- START NEW LINE REQUESTED BY USER (Below Program Name) ---
+        const providerLineText = "at Sudhir Srivastava Innovations Pvt. Ltd";
+        firstPage.drawText(providerLineText, {
+          x,
+          y: y - 88, // Positioned 12 units below programName (y - 76)
+          size: 7,
+          font: soraFont, // Use Sora-Regular.ttf
+          color: rgb(0.5, 0.5, 0.5), // Gray color
+          maxWidth: 350,
+          lineHeight: 10,
+        });
+        // --- END NEW LINE REQUESTED BY USER ---
+        
+// Shorter line width for operation text
+if (operationText) {
+  drawMultilineText(
+    firstPage,
+    operationText,
+    x,
+    y - 100,
+    soraSemiBoldFont,
+    6,
+    rgb(0, 0, 0),
+    250, // ↓ Reduced from 350 for earlier line breaks
+    10
+  );
+}
 
-        if (operationText) {
-          firstPage.drawText(operationText, {
-            x,
-            y: y - 100,
-            size: 7,
-            font: soraSemiBoldFont,
-            color: rgb(0, 0, 0),
-          });
-        }
+
+// Slightly wider for paragraph text (still balanced)
+if (paragraphText) {
+  drawMultilineText(
+    firstPage,
+    paragraphText,
+    x,
+    y - 140,
+    soraFont,
+    7,
+    rgb(0.5, 0.5, 0.5),
+    370, // ↓ Reduced a bit for better wrapping
+    10
+  );
+}
+
+        // END NEW PARAGRAPH DRAWING LOGIC
 
         if (doi) {
           const fontSize = 7;
@@ -157,7 +267,7 @@ export default function Editor() {
           const pageWidth = firstPage.getWidth();
           firstPage.drawText(doi, {
             x: Math.max(margin, (pageWidth - textWidth) / 2) - 65,
-            y: margin + 37,
+            y: margin + 45,
             size: fontSize,
             font: soraSemiBoldFont,
             color: rgb(0, 0, 0),
@@ -172,7 +282,7 @@ export default function Editor() {
           const pageWidth = firstPage.getWidth();
           firstPage.drawText(certificateNo, {
             x: pageWidth - textWidth - margin - 105,
-            y: margin + 38,
+            y: margin + 45,
             size: fontSize,
             font: soraSemiBoldFont,
             color: rgb(0, 0, 0),
@@ -201,13 +311,14 @@ export default function Editor() {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [firstName, lastName, hospitalName, programName, operationText, doi, certificateNo]);
+  }, [firstName, lastName, hospitalName, programName, operationText, paragraphText, doi, certificateNo]); // paragraphText is in dependency array
 
 // Export Logic
 const handleExport = async () => {
   // 1. Basic checks
   if (!previewUrl || !certificateNo) {
-    alert("Please ensure a certificate number is provided before exporting.");
+    // IMPORTANT: Replaced alert() with console.error/log and return to follow safety guidelines
+    console.error("Export Error: Please ensure a certificate number is provided before exporting.");
     return;
   }
 
@@ -270,8 +381,6 @@ const handleExport = async () => {
     setIsLoading(false);
   }
 };
-
-// ... (Rest of your component code - getButtonContent, getButtonClass, and return JSX)
 
   // Helper functions for button state
   const getButtonContent = () => {
@@ -342,8 +451,8 @@ const handleExport = async () => {
               Certificate Details
             </h2>
             <p className="mt-2 text-base text-gray-600">
-                Instantly customize and generate a professional training certificate using the input fields below. The preview will update in real-time.
-              </p>
+              Instantly customize and generate a professional training certificate using the input fields below. The preview will update in real-time.
+            </p>
             
             {/* Input fields container: Uses responsive grid for max horizontal spread */}
             <div className="flex flex-col gap-5 flex-grow overflow-y-auto pr-1">
@@ -382,14 +491,27 @@ const handleExport = async () => {
                 />
               </div>
 
-              <InputComponent
-                label="Operation/Achievement Text"
-                type="text"
-                value={operationText}
-                onChange={(e) => setOperationText(e.target.value)}
-                placeholder="e.g., successfully completed the robotic system training"
-              />
+<InputComponent
+  label="Operation/Achievement Text"
+  type="text"
+  value={operationText}
+  onChange={(e) => setOperationText(e.target.value)}
+  placeholder="e.g., successfully completed the robotic system training"
+  multiline={true} // ✅ enable multi-line
+  rows={4}         // optional: height of textarea
+/>
+
               
+              {/* INPUT COMPONENT FOR PARAGRAPH */}
+              <InputComponent
+                label="Paragraph Text"
+                type="text"
+                value={paragraphText}
+                onChange={(e) => setParagraphText(e.target.value)}
+                placeholder="write your content" // MODIFIED: New placeholder text
+              />
+              {/* END NEW INPUT COMPONENT */}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <InputComponent
                   label="Date of Issue (DD/MM/YYYY)"

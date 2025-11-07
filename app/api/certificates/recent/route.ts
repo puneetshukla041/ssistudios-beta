@@ -1,33 +1,52 @@
-// app/api/certificates/recent/route.ts
+import { NextResponse } from "next/server";
+import { ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { s3 } from "@/lib/s3Client";
 
-import { NextRequest, NextResponse } from 'next/server';
-import { Certificate } from '@/models/Certificate'; // Adjust path
-import mongoose from 'mongoose';
+export async function GET() {
+  try {
+    const bucketName = process.env.AWS_BUCKET_NAME!;
+    const prefix = "certificates/";
 
-// --- MOCK USER SETUP (REPLACE THIS) ---
-const MOCK_MEMBER_ID = '60d0fe4f5311234567890abc'; 
-// ------------------------------------
+    const command = new ListObjectsV2Command({
+      Bucket: bucketName,
+      Prefix: prefix,
+    });
 
-export async function GET(req: NextRequest) {
-    // await connectDB(); 
+    const result = await s3.send(command);
 
-    try {
-        // Find recent certificates for the mock user, only pulling metadata
-        const recentCertificates = await Certificate.find({ 
-            memberId: new mongoose.Types.ObjectId(MOCK_MEMBER_ID)
-        })
-          .select('-fileData') // Exclude the large file data for listing
-          .sort({ createdAt: -1 })
-          .limit(8)
-          .lean(); // Use .lean() for faster query performance
-
-        return NextResponse.json({ 
-            success: true, 
-            data: recentCertificates,
-        }, { status: 200 });
-
-    } catch (error: any) {
-        console.error("DB Fetch Error:", error);
-        return NextResponse.json({ success: false, error: error.message || 'Failed to fetch certificates.' }, { status: 500 });
+    // If no files are found
+    if (!result.Contents || result.Contents.length === 0) {
+      return NextResponse.json({ data: [] }, { status: 200 });
     }
+
+    // Map and format file details
+    const certificates = result.Contents.map((item) => {
+      const key = item.Key || "";
+      const fileName = key.replace(prefix, "");
+      const [userFolder, certFile] = fileName.split("/");
+
+      return {
+        _id: key,
+        recipientName: userFolder || "Unknown",
+        certificateNo: certFile?.replace(".pdf", "") || "Unknown",
+        programName: "Robotics Training Program",
+        createdAt: item.LastModified || new Date(),
+        fileUrl: `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`,
+      };
+    });
+
+    // Sort newest first
+    const sorted = certificates.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return NextResponse.json({ data: sorted }, { status: 200 });
+  } catch (error: any) {
+    console.error("Error fetching certificates:", error);
+    return NextResponse.json(
+      { error: "Failed to list certificates", details: error.message },
+      { status: 500 }
+    );
+  }
 }

@@ -1,7 +1,7 @@
-// app/dashboard/page.tsx (Updated)
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Mail,
   Plus,
@@ -12,20 +12,17 @@ import {
   Settings,
 } from "lucide-react";
 
-// Assuming these components are available in the specified paths
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/dashboard/Header";
 import Usernameheader from "@/components/dashboard/usernameheader";
 import BugReporterCard from "@/components/dashboard/BugReporterCard";
 import Recent from "@/components/dashboard/Recent";
-
-import Templates from "@/components/dashboard/Templates"; // <--- ADD THIS LINE
+import Templates from "@/components/dashboard/Templates";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const router = useRouter(); // ✅ Add router hook
   const [isBugCardOpen, setIsBugCardOpen] = useState(false);
-
-  // ... (QuickAction interface and navigateTo function remain the same) ...
 
   interface QuickAction {
     id: string;
@@ -36,11 +33,9 @@ export default function DashboardPage() {
     action: () => void;
   }
 
+  // ✅ Use router.push instead of console.log
   const navigateTo = (path: string) => {
-    console.log(`Navigation placeholder: Directing to ${path}`);
-    // In a real app, this would likely be:
-    // const router = useRouter();
-    // router.push(path);
+    router.push(path);
   };
 
   const quickActions: QuickAction[] = [
@@ -50,7 +45,7 @@ export default function DashboardPage() {
       icon: <Plus size={20} />,
       color: "bg-blue-500/20 border-blue-400/40 text-blue-700",
       hoverColor: "hover:bg-blue-500/30 hover:border-blue-400/60",
-      action: () => navigateTo("/poster-editor"),
+      action: () => navigateTo("/poster/editor"),
     },
     {
       id: "generate-card",
@@ -58,7 +53,7 @@ export default function DashboardPage() {
       icon: <FileText size={20} />,
       color: "bg-green-500/20 border-green-400/40 text-green-700",
       hoverColor: "hover:bg-green-500/30 hover:border-green-400/60",
-      action: () => navigateTo("/certificate"),
+      action: () => navigateTo("/selector/certificate"),
     },
     {
       id: "manage-templates",
@@ -66,7 +61,7 @@ export default function DashboardPage() {
       icon: <LayoutGrid size={20} />,
       color: "bg-purple-500/20 border-purple-400/40 text-purple-700",
       hoverColor: "hover:bg-purple-500/30 hover:border-purple-400/60",
-      action: () => navigateTo("/templates"),
+      action: () => navigateTo("/selector/idcard"),
     },
     {
       id: "upload-asset",
@@ -74,7 +69,7 @@ export default function DashboardPage() {
       icon: <Upload size={20} />,
       color: "bg-orange-500/20 border-orange-400/40 text-orange-700",
       hoverColor: "hover:bg-orange-500/30 hover:border-orange-400/60",
-      action: () => navigateTo("/assets/upload"),
+      action: () => navigateTo("/selector/visitingcard"),
     },
     {
       id: "design-tools",
@@ -85,7 +80,7 @@ export default function DashboardPage() {
       action: () => navigateTo("/design-tools"),
     },
     {
-      id: "Themes",
+      id: "themes",
       label: "Themes",
       icon: <Settings size={20} />,
       color: "bg-gray-500/20 border-gray-400/40 text-gray-700",
@@ -96,45 +91,39 @@ export default function DashboardPage() {
 
   return (
     <main className="flex-1 min-h-screen px-4 sm:px-6 lg:px-12 xl:px-20 transition-all duration-300 bg-transparent text-gray-900">
-      
-      {/* Report Bug Button - Adjusted for responsive positioning and text */}
+      {/* Report Bug Button */}
       <div className="absolute top-18 right-4 sm:top-10 sm:right-10 z-50 flex flex-col items-center">
         <motion.button
           className="p-3 rounded-full bg-blue-600/90 text-white shadow-lg transition-all duration-300 hover:bg-blue-700/90 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => setIsBugCardOpen(true)} // Open the card on click
+          onClick={() => setIsBugCardOpen(true)}
         >
           <Mail size={24} />
         </motion.button>
-        
-        {/* Full text for medium screens and up */}
+
         <span className="mt-2 text-xs text-gray-700 dark:text-black-600 text-center whitespace-nowrap hidden sm:block">
           Report a bug <br /> or give feedback for Improvements
         </span>
-        
-        {/* Simplified text for small mobile screens */}
         <span className="mt-2 text-[10px] text-gray-700 dark:text-black-600 text-center whitespace-nowrap block sm:hidden">
           Report Bug
         </span>
       </div>
 
-      {/* Main Header (usually a logo/nav) - hidden on small screens */}
+      {/* Headers */}
       <div className="my-4 cursor-pointer hidden lg:block">
         <Header />
       </div>
 
-      {/* Usernameheader - Ensured visibility on mobile by removing visibility classes */}
-      <div className="my-4"> 
+      <div className="my-4">
         <Usernameheader />
       </div>
 
-      {/* ----------------- QUICK ACTIONS SECTION ----------------- */}
+      {/* Quick Actions */}
       <section className="mb-12 mt-8">
         <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900">
           Quick Actions
         </h2>
-        {/* Responsive Grid: 2 columns on mobile, 3 on small/tablet, 6 on large desktop */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {quickActions.map((action, index) => (
             <motion.button
@@ -161,25 +150,23 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
-      {/* ------------------------------------------------------------- */}
 
-      {/* ----------------- EXPLORE TEMPLATES SECTION ----------------- */}
-      <Templates /> {/* <--- ADD THIS LINE */}
-      {/* ------------------------------------------------------------- */}
+      {/* Templates Section */}
+      <Templates />
 
-  <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900">
-    Recent Projects
-  </h2>
-  <Recent /> {/* Render your recent projects component */}
+      {/* Recent Projects */}
+      <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-900">
+        Recent Projects
+      </h2>
+      <Recent />
 
       {/* Bug Reporter Card */}
-      {user && ( // Only render if a user is logged in
+      {user && (
         <BugReporterCard
           isOpen={isBugCardOpen}
           onClose={() => setIsBugCardOpen(false)}
-          // Assuming user object has 'id' and 'username' properties
-          userId={user.id} 
-          username={user.username} 
+          userId={user.id}
+          username={user.username}
         />
       )}
     </main>

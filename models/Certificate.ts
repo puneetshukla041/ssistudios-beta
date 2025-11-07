@@ -1,52 +1,22 @@
 // models/Certificate.ts
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-// Interface for a Certificate document
 export interface ICertificate extends Document {
-  memberId: Types.ObjectId;
-  recipientName: string;
   certificateNo: string;
-  programName: string;
-  fileData: Buffer;       // PDF file bytes
-  fileType: string;       // MIME type, e.g., 'application/pdf'
+  filename: string;      // s3 object key
+  url?: string;          // S3 object URL (optional)
+  uploadedBy: string;    // username or userId
+  programName?: string;
   createdAt: Date;
-  updatedAt: Date;
 }
 
-const CertificateSchema: Schema = new Schema(
-  {
-    memberId: {
-      type: Schema.Types.ObjectId,
-      ref: "Member",
-      required: true,
-    },
-    recipientName: {
-      type: String,
-      required: true,
-    },
-    certificateNo: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    programName: {
-      type: String,
-    },
-    // Store file binary data
-    fileData: {
-      type: Buffer,
-      required: true,
-    },
-    // File MIME type (usually application/pdf)
-    fileType: {
-      type: String,
-      default: "application/pdf",
-    },
-  },
-  { timestamps: true }
-);
+const CertificateSchema: Schema = new Schema({
+  certificateNo: { type: String, required: true },
+  filename: { type: String, required: true },
+  url: { type: String },
+  uploadedBy: { type: String, required: true },
+  programName: { type: String },
+}, { timestamps: true });
 
-// Prevent model overwrite issues in dev
 export const Certificate =
-  mongoose.models.Certificate ||
-  mongoose.model<ICertificate>("Certificate", CertificateSchema);
+  mongoose.models.Certificate || mongoose.model<ICertificate>("Certificate", CertificateSchema);

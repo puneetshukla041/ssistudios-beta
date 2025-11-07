@@ -1,80 +1,52 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/dbconnect";
-import { Certificate } from "@/models/Certificate";
-import { Member } from "@/models/Employee";
-import { Error as MongooseError } from "mongoose";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { s3 } from "@/lib/s3Client";
 
 export async function POST(req: Request) {
-  await dbConnect();
-
   try {
     const formData = await req.formData();
+    const file = formData.get("file") as File;
+    const certificateNo = formData.get("certificateNo") as string;
+    const recipientName = formData.get("recipientName") as string;
 
-    const pdfFile = formData.get("file") as File | null;
-    const certificateNo = formData.get("certificateNo") as string | null;
-    const recipientName = formData.get("recipientName") as string | null;
-    const programName = formData.get("programName") as string | null;
-
-    if (!pdfFile || !(pdfFile instanceof File) || !certificateNo || !recipientName || !programName) {
+    if (!file || !certificateNo) {
       return NextResponse.json(
-        { message: "Missing required certificate data (file, number, recipient, or program)." },
+        { message: "Missing file or certificate number" },
         { status: 400 }
       );
     }
 
-    const fileBuffer = Buffer.from(await pdfFile.arrayBuffer()); // <-- actual file data
+    // Folder structure: certificates/{username or recipientName}/filename.pdf
+    const fileName = `${recipientName || "user"}/${certificateNo}.pdf`;
+    const bucketName = process.env.AWS_BUCKET_NAME!;
 
-    const existing = await Certificate.findOne({ certificateNo });
-    if (existing) {
-      return NextResponse.json({ message: `Certificate ${certificateNo} already exists.` }, { status: 409 });
-    }
+    // Prepare S3 upload
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: `certificates/${fileName}`,
+      ContentType: file.type,
+    };
 
-    let member = await Member.findOne({ username: "testuser" });
-
-    if (!member) {
-      console.log("Mock user not found. Creating 'testuser'...");
-      member = await Member.create({
-        username: "testuser",
-        email: "testuser@example.com",
-        password: "mock-password-123",
-      });
-    }
-
-    const newCert = new Certificate({
-      memberId: member._id,
-      recipientName,
-      certificateNo,
-      programName,
-      fileData: fileBuffer, // <-- Store file here
-      fileType: pdfFile.type || "application/pdf",
+    // Get presigned URL (expires in 1 minute)
+    const signedUrl = await getSignedUrl(s3, new PutObjectCommand(uploadParams), {
+      expiresIn: 60,
     });
 
-    await newCert.save();
+    // Upload file from server to S3
+    const arrayBuffer = await file.arrayBuffer();
+    await fetch(signedUrl, {
+      method: "PUT",
+      body: Buffer.from(arrayBuffer),
+      headers: { "Content-Type": file.type },
+    });
 
-    return NextResponse.json(
-      {
-        message: "Certificate uploaded successfully.",
-        certificate: {
-          id: newCert._id,
-          certificateNo,
-          size: fileBuffer.length,
-          type: newCert.fileType,
-        },
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    const err = error as Error;
-    console.error("Upload Error:", err);
-
-    let message = "Failed to upload certificate.";
-    if (err instanceof MongooseError.ValidationError) {
-      message = "Database validation failed. Check server logs for details.";
-    }
-
-    return NextResponse.json(
-      { message, detail: err.message || "Unknown error" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      message: "File uploaded successfully",
+      fileUrl: `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/certificates/${fileName}`,
+    });
+  } catch (error: any) {
+    console.error("Upload error:", error);
+    return NextResponse.json({ message: "Upload failed", error }, { status: 500 });
   }
 }
